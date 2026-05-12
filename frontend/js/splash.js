@@ -87,16 +87,18 @@ function generateTrainingPath(baseLat, baseLon) {
  * Run animated training exercise flight pattern on the map
  */
 function runTrainingExercise() {
-  if (!globalThis.userLocation?.lat || !globalThis.userLocation?.lon) return;
-  if (splashMarker) return;
+  if (!globalThis.map || !globalThis.userLocation?.lat || !globalThis.userLocation?.lon) return;
+  if (splashTimer || splashMarker) return;
 
   const path = generateTrainingPath(globalThis.userLocation.lat, globalThis.userLocation.lon);
   let idx = 0;
 
-  splashTimer = setInterval(() => {
+  const intervalId = setInterval(() => {
     if (idx >= path.length) {
-      clearInterval(splashTimer);
-      splashTimer = null;
+      clearInterval(intervalId);
+      if (splashTimer === intervalId) {
+        splashTimer = null;
+      }
       if (splashMarker && globalThis.map) {
         globalThis.map.removeLayer(splashMarker);
         splashMarker = null;
@@ -133,6 +135,7 @@ function runTrainingExercise() {
 
     idx++;
   }, 150);
+  splashTimer = intervalId;
 
   debug('Training exercise started');
 }
