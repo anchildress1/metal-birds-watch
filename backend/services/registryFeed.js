@@ -17,7 +17,7 @@ async function enrichPlanes(planes) {
     return planes;
   }
 
-  const hexes = [...new Set(planes.map(p => p.icao24).filter(h => HEX_RE.test(h)))].slice(0, MAX_HEXES);
+  const hexes = [...new Set(planes.map(p => String(p.icao24 || '').toLowerCase()).filter(h => HEX_RE.test(h)))].slice(0, MAX_HEXES);
   if (hexes.length === 0) {
     return planes;
   }
@@ -26,7 +26,7 @@ async function enrichPlanes(planes) {
   const timeoutId = setTimeout(() => timeoutController.abort(), REGISTRY_FEED_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${REGISTRY_FEED_BASE_URL}/feed`, {
+    const response = await fetch(new URL('/feed', REGISTRY_FEED_BASE_URL).toString(), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${REGISTRY_FEED_TOKEN}`,
@@ -44,7 +44,7 @@ async function enrichPlanes(planes) {
     const registry = await response.json();
     let matched = 0;
     for (const plane of planes) {
-      const match = registry[plane.icao24];
+      const match = registry[String(plane.icao24 || '').toLowerCase()];
       if (match) {
         plane.registry = match;
         matched++;
